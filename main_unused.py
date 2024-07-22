@@ -1,4 +1,3 @@
-#This is a main python code used to an analysis on Nuclear Expansion using China as a case study
 
 import os
 import jieba
@@ -7,12 +6,12 @@ from collections import Counter
 from sklearn.feature_extraction.text import CountVectorizer
 import seaborn as sns
 import matplotlib.pyplot as plt
-from scipy.stats import pearsonr
 
 #paths to local files
 stopwords_path = '/Users/radeksabatka/Library/Mobile Documents/com~apple~CloudDocs/Academics/IR499 Dissertation/Python/nuclear-nationalism-china/stopwords.txt'
 speeches_folder_path = '/Users/radeksabatka/Library/Mobile Documents/com~apple~CloudDocs/Academics/IR499 Dissertation/Python/nuclear-nationalism-china/data/texts'
 # '/Users/radeksabatka/Library/Mobile Documents/com~apple~CloudDocs/Academics/IR499 Dissertation/Python/outputs/correlation_matrix.png
+
 
 # Define keywords for each theme in Chinese
 keywords = {
@@ -72,33 +71,21 @@ theme_frequencies_df = pd.DataFrame(theme_frequencies)
 # Display the frequency table
 print(theme_frequencies_df)
 
-# Calculate the correlation matrix and p-values
+# Calculate the correlation matrix
 correlation_matrix = theme_frequencies_df.corr()
-p_values = pd.DataFrame(index=correlation_matrix.index, columns=correlation_matrix.columns)
 
-for row in correlation_matrix.columns:
-    for col in correlation_matrix.columns:
-        corr, p_val = pearsonr(theme_frequencies_df[row], theme_frequencies_df[col])
-        p_values.loc[row, col] = p_val
-
-# Plot the heatmap of the correlation matrix and save it as a PNG file
+# Plot the heatmap and save it as a PNG file
 plt.figure(figsize=(10, 8))
 sns.heatmap(correlation_matrix, annot=True, cmap='coolwarm', linewidths=0.5)
 plt.title('Correlation Matrix of Themes')
 plt.savefig('/Users/radeksabatka/Library/Mobile Documents/com~apple~CloudDocs/Academics/IR499 Dissertation/Python/outputs/correlation_matrix.png')  # Save the heatmap as a PNG file
 plt.show()
 
-# Display the correlation matrix and p-values
-print("Correlation Matrix:")
+# Display the correlation matrix
 print(correlation_matrix)
-print("\nP-Values:")
-print(p_values)
 
-# Save the correlation matrix and p-values to an Excel file
+# Save the correlation matrix to an Excel file
 excel_path = '/Users/radeksabatka/Library/Mobile Documents/com~apple~CloudDocs/Academics/IR499 Dissertation/Python/outputs/correlation_matrix.xlsx'
+correlation_matrix.to_excel(excel_path, sheet_name='Correlation Matrix')
 
-with pd.ExcelWriter(excel_path) as writer:
-    correlation_matrix.to_excel(writer, sheet_name='Correlation Matrix')
-    p_values.to_excel(writer, sheet_name='P-Values')
-
-print(f'Correlation matrix and p-values saved to {excel_path}')
+print(f'Correlation matrix saved to {excel_path}')
