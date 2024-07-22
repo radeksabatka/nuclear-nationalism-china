@@ -9,7 +9,7 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 from scipy.stats import pearsonr
 
-#paths to local files
+# paths to local files
 stopwords_path = '/Users/radeksabatka/Library/Mobile Documents/com~apple~CloudDocs/Academics/IR499 Dissertation/Python/nuclear-nationalism-china/stopwords.txt'
 speeches_folder_path = '/Users/radeksabatka/Library/Mobile Documents/com~apple~CloudDocs/Academics/IR499 Dissertation/Python/nuclear-nationalism-china/data/texts'
 # '/Users/radeksabatka/Library/Mobile Documents/com~apple~CloudDocs/Academics/IR499 Dissertation/Python/outputs/correlation_matrix.png
@@ -29,7 +29,6 @@ def load_stopwords(filepath):
         for line in file:
             stop_words.add(line.strip())
     return stop_words
-
 
 # Load stopwords from the specified file
 stop_words = load_stopwords(stopwords_path)
@@ -94,11 +93,15 @@ print(correlation_matrix)
 print("\nP-Values:")
 print(p_values)
 
-# Save the correlation matrix and p-values to an Excel file
+# Calculate basic statistics
+basic_stats = theme_frequencies_df.describe().transpose()
+
+# Save the correlation matrix, p-values, and basic statistics to an Excel file
 excel_path = '/Users/radeksabatka/Library/Mobile Documents/com~apple~CloudDocs/Academics/IR499 Dissertation/Python/outputs/correlation_matrix.xlsx'
 
 with pd.ExcelWriter(excel_path) as writer:
     correlation_matrix.to_excel(writer, sheet_name='Correlation Matrix')
     p_values.to_excel(writer, sheet_name='P-Values')
+    basic_stats.to_excel(writer, sheet_name='Basic Stats')
 
-print(f'Correlation matrix and p-values saved to {excel_path}')
+print(f'Correlation matrix, p-values, and basic statistics saved to {excel_path}')
