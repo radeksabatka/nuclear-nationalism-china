@@ -6,13 +6,14 @@ import pandas as pd
 from collections import Counter
 from sklearn.feature_extraction.text import CountVectorizer
 import seaborn as sns
+from matplotlib import font_manager as fm
 import matplotlib.pyplot as plt
 from scipy.stats import pearsonr
 
 # paths to local files
 stopwords_path = '/Users/radeksabatka/Library/Mobile Documents/com~apple~CloudDocs/Academics/IR499 Dissertation/Python/nuclear-nationalism-china/stopwords.txt'
 speeches_folder_path = '/Users/radeksabatka/Library/Mobile Documents/com~apple~CloudDocs/Academics/IR499 Dissertation/Python/nuclear-nationalism-china/data/texts'
-# '/Users/radeksabatka/Library/Mobile Documents/com~apple~CloudDocs/Academics/IR499 Dissertation/Python/outputs/correlation_matrix.png
+output_path = '/Users/radeksabatka/Library/Mobile Documents/com~apple~CloudDocs/Academics/IR499 Dissertation/Python/outputs'
 
 # Define keywords for each theme in Chinese
 keywords = {
@@ -59,7 +60,42 @@ df = pd.DataFrame(texts, columns=['text'])
 # Apply preprocessing to all texts
 df['preprocessed_text'] = df['text'].apply(preprocess_text)
 
-# Calculate term frequencies
+# Combine all preprocessed texts into one list
+all_words = [word for text in df['preprocessed_text'] for word in text.split()]
+
+# Create a frequency distribution
+word_counts = Counter(all_words)
+
+# Remove empty strings from the word counts
+if '' in word_counts:
+    del word_counts['']
+
+# Convert to DataFrame for easier handling
+word_freq_df = pd.DataFrame(word_counts.items(), columns=['word', 'count']).sort_values(by='count', ascending=False)
+
+# Display the top 30 most common words
+print(word_freq_df.head(30))
+
+# Set the font properties for matplotlib to display Chinese characters
+font_path = '/Users/radeksabatka/Library/Fonts/simsun.ttf'
+
+# Create a font properties object
+prop = fm.FontProperties(fname=font_path)
+plt.rcParams['font.sans-serif'] = ['SimSun']  # Use the name of the font
+plt.rcParams['axes.unicode_minus'] = False  # Ensure minus sign is rendered correctly
+
+# Plot the 30 most common words
+plt.figure(figsize=(12, 8))
+sns.barplot(x='count', y='word', data=word_freq_df.head(30))
+plt.xlabel('Frequency', fontproperties=prop)
+plt.ylabel('Words', fontproperties=prop)
+plt.title('Top 30 Most Common Words', fontproperties=prop)
+plt.xticks(fontproperties=prop)
+plt.yticks(fontproperties=prop)
+plt.savefig(os.path.join(output_path, 'top_30_words.png'))
+plt.show()
+
+# Calculate term frequencies for themes
 vectorizer = CountVectorizer(vocabulary=[word for sublist in keywords.values() for word in sublist])
 X = vectorizer.fit_transform(df['preprocessed_text'])
 frequencies = pd.DataFrame(X.toarray(), columns=vectorizer.get_feature_names_out())
@@ -84,7 +120,7 @@ for row in correlation_matrix.columns:
 plt.figure(figsize=(10, 8))
 sns.heatmap(correlation_matrix, annot=True, cmap='coolwarm', linewidths=0.5)
 plt.title('Correlation Matrix of Themes')
-plt.savefig('/Users/radeksabatka/Library/Mobile Documents/com~apple~CloudDocs/Academics/IR499 Dissertation/Python/outputs/correlation_matrix.png')  # Save the heatmap as a PNG file
+plt.savefig(os.path.join(output_path, 'correlation_matrix.png'))
 plt.show()
 
 # Display the correlation matrix and p-values
@@ -96,8 +132,11 @@ print(p_values)
 # Calculate basic statistics
 basic_stats = theme_frequencies_df.describe().transpose()
 
+# Print out the basic statistics with explanation
+print(basic_stats)
+
 # Save the correlation matrix, p-values, and basic statistics to an Excel file
-excel_path = '/Users/radeksabatka/Library/Mobile Documents/com~apple~CloudDocs/Academics/IR499 Dissertation/Python/outputs/correlation_matrix.xlsx'
+excel_path = os.path.join(output_path, 'correlation_matrix.xlsx')
 
 with pd.ExcelWriter(excel_path) as writer:
     correlation_matrix.to_excel(writer, sheet_name='Correlation Matrix')
