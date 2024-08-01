@@ -17,10 +17,10 @@ output_path = '/Users/radeksabatka/Library/Mobile Documents/com~apple~CloudDocs/
 
 # Define keywords for each theme in Chinese
 keywords = {
-    "nationalism": ["国家", "爱国", "祖国", "民族自豪感"],
-    "credible_deterrence": ["威慑", "威胁", "防御", "报复"],
-    "prestige": ["声望", "地位", "名誉", "荣誉"],
-    "military_complex": ["军事", "军队", "国防工业", "武器"]
+    "nationalism": ["国家", "爱国", "祖国", "民族自豪感","中国梦","寻根"],
+    "deterrence": ["威慑", "威胁", "防御", "报复"],
+    "status": ["声望", "地位", "名誉", "荣誉"],
+    "defense": ["军事", "军队", "国防工业", "武器"]
 }
 
 # Load stopwords from file
@@ -54,7 +54,7 @@ def load_texts(folder_path):
 # Load texts from the specified folder
 texts = load_texts(speeches_folder_path)
 
-# Convert to a DataFrame for convenience
+# Convert texts to df
 df = pd.DataFrame(texts, columns=['text'])
 
 # Apply preprocessing to all texts
@@ -76,7 +76,7 @@ word_freq_df = pd.DataFrame(word_counts.items(), columns=['word', 'count']).sort
 # Display the top 30 most common words
 print(word_freq_df.head(30))
 
-# Set the font properties for matplotlib to display Chinese characters
+# Font for matplotlib to enusre right display of Chinese characters
 font_path = '/Users/radeksabatka/Library/Fonts/simsun.ttf'
 
 # Create a font properties object
@@ -107,9 +107,10 @@ theme_frequencies_df = pd.DataFrame(theme_frequencies)
 # Display the frequency table
 print(theme_frequencies_df)
 
-# Calculate the correlation matrix and p-values
+# Calculate the correlation matrix, p-values, and effect sizes
 correlation_matrix = theme_frequencies_df.corr()
 p_values = pd.DataFrame(index=correlation_matrix.index, columns=correlation_matrix.columns)
+effect_sizes = correlation_matrix.copy()  # Effect sizes are the same as correlation coefficients for Pearson correlation
 
 for row in correlation_matrix.columns:
     for col in correlation_matrix.columns:
@@ -123,24 +124,38 @@ plt.title('Correlation Matrix of Themes')
 plt.savefig(os.path.join(output_path, 'correlation_matrix.png'))
 plt.show()
 
-# Display the correlation matrix and p-values
+# Display the correlation matrix, p-values, and effect sizes
 print("Correlation Matrix:")
 print(correlation_matrix)
 print("\nP-Values:")
 print(p_values)
+print("\nEffect Sizes (same as correlation coefficients):")
+print(effect_sizes)
 
 # Calculate basic statistics
 basic_stats = theme_frequencies_df.describe().transpose()
 
-# Print out the basic statistics with explanation
-print(basic_stats)
 
-# Save the correlation matrix, p-values, and basic statistics to an Excel file
+# Save the correlation matrix, p-values, effect sizes, and basic statistics to an Excel file
 excel_path = os.path.join(output_path, 'correlation_matrix.xlsx')
 
 with pd.ExcelWriter(excel_path) as writer:
     correlation_matrix.to_excel(writer, sheet_name='Correlation Matrix')
     p_values.to_excel(writer, sheet_name='P-Values')
+    effect_sizes.to_excel(writer, sheet_name='Effect Sizes')
     basic_stats.to_excel(writer, sheet_name='Basic Stats')
 
-print(f'Correlation matrix, p-values, and basic statistics saved to {excel_path}')
+print(f'Correlation matrix, p-values, effect sizes, and basic statistics saved to {excel_path}')
+
+# Plot the bar chart for theme frequencies
+theme_frequencies_df_sum = theme_frequencies_df.sum().sort_values()
+
+plt.figure(figsize=(10, 6))
+sns.barplot(x=theme_frequencies_df_sum.values, y=theme_frequencies_df_sum.index)
+plt.xlabel('Total Frequency', fontproperties=prop)
+plt.ylabel('Theme', fontproperties=prop)
+plt.title('Total Frequencies of Themes', fontproperties=prop)
+plt.xticks(fontproperties=prop)
+plt.yticks(fontproperties=prop)
+plt.savefig(os.path.join(output_path, 'theme_frequencies.png'))
+plt.show()
